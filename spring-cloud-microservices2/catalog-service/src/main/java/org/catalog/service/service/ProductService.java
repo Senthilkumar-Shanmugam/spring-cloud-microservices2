@@ -2,11 +2,13 @@ package org.catalog.service.service;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 import javax.transaction.Transactional;
 
 import org.catalog.service.entities.Product;
 import org.catalog.service.repository.ProductRepository;
+import org.catalog.service.util.MyThreadLocalsHolder;
 import org.catalog.service.web.model.ProductInventoryResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -21,20 +23,13 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class ProductService {
 	private final ProductRepository productRepository;
-	private final RestTemplate restTemplate;
-	
-	@Autowired
-    public ProductService(ProductRepository productRepository,RestTemplate restTemplate) {
-        this.productRepository = productRepository;
-        this.restTemplate = restTemplate;
-    }
-    //private final InventoryServiceClient inventoryServiceClient;
+	private final InventoryServiceClient inventoryServiceClient;
 
-    /*@Autowired
+    @Autowired
     public ProductService(ProductRepository productRepository, InventoryServiceClient inventoryServiceClient) {
         this.productRepository = productRepository;
         this.inventoryServiceClient = inventoryServiceClient;
-    }*/
+    }
 
     public List<Product> findAllProducts() {
         List<Product> products = productRepository.findAll();
@@ -61,18 +56,19 @@ public class ProductService {
         Optional<Product> productOptional = productRepository.findByCode(code);
         
         if (productOptional.isPresent()) {
-           // String correlationId = UUID.randomUUID().toString();
-           // MyThreadLocalsHolder.setCorrelationId(correlationId);
-            //log.info("Before CorrelationID: "+ MyThreadLocalsHolder.getCorrelationId());
+            String correlationId = UUID.randomUUID().toString();
+            MyThreadLocalsHolder.setCorrelationId(correlationId);
+            log.info("Before CorrelationID: "+ MyThreadLocalsHolder.getCorrelationId());
             log.info("Fetching inventory level for product_code: " + code);
-            /*Optional<ProductInventoryResponse> itemResponseEntity =
+            Optional<ProductInventoryResponse> itemResponseEntity =
                     this.inventoryServiceClient.getProductInventoryByCode(code);
             if (itemResponseEntity.isPresent()) {
                 Integer quantity = itemResponseEntity.get().getAvailableQuantity();
                 productOptional.get().setInStock(quantity > 0);
             }
-            log.info("After CorrelationID: "+ MyThreadLocalsHolder.getCorrelationId());*/
-            
+            log.info("After CorrelationID: "+ MyThreadLocalsHolder.getCorrelationId());
+        }
+            /*
             ResponseEntity<ProductInventoryResponse> itemResponseEntity = restTemplate.getForEntity("http://inventory-service/api/inventory/{code}", 
             		          		ProductInventoryResponse.class,code);
             
@@ -85,7 +81,7 @@ public class ProductService {
                         ", StatusCode: "+itemResponseEntity.getStatusCode());
             }
         }
-        return productOptional;
+*/        return productOptional;
     }
-
 }
+
